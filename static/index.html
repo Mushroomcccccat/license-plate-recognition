@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>车牌识别应用</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">车牌识别应用</h2>
+    <div class="card p-4">
+      <div class="mb-3">
+        <label for="fileInput" class="form-label">点击或拖拽上传车牌照片</label>
+        <input type="file" class="form-control" id="fileInput">
+      </div>
+      <div id="resultSection" style="display: none;">
+        <h4 class="mb-3">识别结果</h4>
+        <ul id="textList" class="list-group mb-3"></ul>
+        <h5>置信度:</h5>
+        <ul id="scoreList" class="list-group mb-3"></ul>
+        <div class="mt-3">
+          <strong>OCR Image:</strong>
+          <img id="ocrImage" class="img-fluid mt-2" src="" alt="OCR Image">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function() {
+      const file = this.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('http://localhost:5000/recognize', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('resultSection').style.display = 'block';
+        document.getElementById('textList').innerHTML = data.txts.map((txt, index) => `<li class="list-group-item">文本 ${index + 1}: ${txt}</li>`).join('');
+        document.getElementById('scoreList').innerHTML = data.scores.map((score, index) => `<li class="list-group-item">文本 ${index + 1}: ${score}</li>`).join('');
+        document.getElementById('ocrImage').src = `data:image/jpeg;base64,${data.image_base64}`;
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  </script>
+</body>
+</html>
